@@ -1,7 +1,7 @@
 name: aws-ps-s3-plugin
 version: 1.0.0
 rundeckPluginVersion: 1.2
-author: miguel
+author: Rundeck
 date: Tue Dic 12 2017
 providers:
   - name: aws-ps-s3-cp-step

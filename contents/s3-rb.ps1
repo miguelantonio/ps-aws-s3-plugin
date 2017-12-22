@@ -13,7 +13,7 @@
     S3 URI
 .NOTES
   Version:        1.0.0
-  Author:         Miguel
+  Author:         Rundeck
   Creation Date:  12/20/2017
   
 #>
