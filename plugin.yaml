@@ -121,7 +121,7 @@ providers:
     plugin-type: script
     script-interpreter: powershell -NonInteractive -Noprofile -ExecutionPolicy Bypass -Command
     script-file: s3-sync.ps1
-    script-args: ${config.access_key} ${config.secret_access_key} ${config.source} ${config.destination}
+    script-args: ${config.access_key} ${config.secret_access_key}
     config:
       - type: String
         name: source
@@ -131,6 +131,11 @@ providers:
         name: destination
         title: destination
         description: 'the S3 URI or local path'
+      - type: Boolean
+        name: remove
+        title: Delete
+        description: 'Delete destination files that dont exists on source'
+        default: false
       - type: String
         name: endpoint_url
         title: Endpoint URL
@@ -215,7 +220,7 @@ providers:
     plugin-type: script
     script-interpreter: powershell -NonInteractive -Noprofile -ExecutionPolicy Bypass -Command
     script-file: s3-rm.ps1
-    script-args: ${config.access_key} ${config.secret_access_key}  ${config.S3Uri}
+    script-args: ${config.access_key} ${config.secret_access_key}
     config:
       - type: String
         name: S3Uri

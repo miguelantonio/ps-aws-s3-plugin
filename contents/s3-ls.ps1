@@ -50,7 +50,16 @@ Process {
 
         $uri=[System.Uri]$S3Uri
 
-        $KeyPrefix =  $uri.PathAndQuery +"/"
+        if($uri.LocalPath -ne "/"){
+            $KeyPrefix = $uri.LocalPath
+
+            if($KeyPrefix.StartsWith("/")){
+              $KeyPrefix=$KeyPrefix.Remove(0, 1)  
+            }
+
+        }else{
+            $KeyPrefix = $uri.LocalPath
+        }
 
 		$files = Get-S3Object -BucketName $uri.Authority -KeyPrefix $KeyPrefix @Params
 

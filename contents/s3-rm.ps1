@@ -9,8 +9,6 @@
     AWS Access Key
 .PARAMETER secretKey
     AWS Secret Key
-.PARAMETER S3Uri
-    S3 URI
 .NOTES
   Version:        1.0.0
   Author:         Miguel
@@ -21,8 +19,7 @@
 
 Param (
     [string]$accessKey,
-    [string]$secretKey,
-    [string]$S3Uri
+    [string]$secretKey
 )
 
 Begin {
@@ -32,6 +29,8 @@ Begin {
 Process {
 
 	Try{
+
+        $S3Uri = $Env:RD_CONFIG_S3URI
 
 		$Params = @{}
 
@@ -45,7 +44,18 @@ Process {
 
         $uri=[System.Uri]$S3Uri
 
-        $files = Get-S3Object -BucketName $uri.Authority -KeyPrefix $uri.PathAndQuery @Params
+        if($uri.LocalPath -ne "/"){
+            $KeyPrefix = $uri.LocalPath
+
+            if($KeyPrefix.StartsWith("/")){
+              $KeyPrefix=$KeyPrefix.Remove(0, 1)  
+            }
+
+        }else{
+            $KeyPrefix = $uri.LocalPath
+        }
+
+        $files = Get-S3Object -BucketName $uri.Authority -KeyPrefix $KeyPrefix @Params
 
         foreach($file in $files) { 
 

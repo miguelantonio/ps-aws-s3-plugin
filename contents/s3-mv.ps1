@@ -103,9 +103,9 @@ Process {
 		foreach($file in $files) { 
 			#coping single file
 	    	if($type -eq "file"){
-				Copy-S3Object  -BucketName $uriSource.Authority -Key $key -LocalFile $uriDestination.AbsolutePath  @Params
+				Copy-S3Object  -BucketName $uriSource.Authority -Key $file.key -LocalFile $uriDestination.AbsolutePath  @Params
 			}else{
-				Copy-S3Object  -BucketName $uriSource.Authority -Key $key -LocalFolder $uriDestination.AbsolutePath @Params
+				Copy-S3Object  -BucketName $uriSource.Authority -Key $file.key -LocalFolder $uriDestination.AbsolutePath @Params
 			}
 		}	
 						
@@ -114,7 +114,12 @@ Process {
 
 	if($uriSource.Scheme -ne "s3" -and $uriDestination.Scheme -eq "s3"){ 
 		$type=checkType($uriSource.LocalPath)
-		$key =  $uriDestination.LocalPath.Remove(0, 1)
+
+		if($uriDestination.LocalPath -ne "/"){
+            $key =  $uriDestination.LocalPath.Remove(0, 1)
+        }else{
+            $key = [System.IO.Path]::GetFileName($uriSource.LocalPath)
+        }
 
 		if($type -eq "file"){
 			write-host "Upload file from  $($uriSource.LocalPath) to s3://$($uriDestination.Authority)/$key "
@@ -135,12 +140,12 @@ Process {
 			}
 			
 			if($Env:RD_CONFIG_RECURSIVE){
-		        Write-S3Object -BucketName $uriDestination.Authority -KeyPrefix '\' -Folder $uriSource.LocalPath -SearchPattern "*.*" -Recurse @Params @WriteParams 
+		        Write-S3Object -BucketName $uriDestination.Authority -KeyPrefix $key -Folder $uriSource.LocalPath -Recurse @Params @WriteParams 
 		    }else{
-		    	Write-S3Object -BucketName $uriDestination.Authority -KeyPrefix '\' -Folder $uriSource.LocalPath -SearchPattern "*.*" @Params @WriteParams 
+		    	Write-S3Object -BucketName $uriDestination.Authority -KeyPrefix $key -Folder $uriSource.LocalPath @Params @WriteParams 
 		    }
 
-			Get-S3Object -BucketName $uriDestination.Authority -KeyPrefix '\' @Params
+			Get-S3Object -BucketName $uriDestination.Authority -KeyPrefix $key @Params
 		}
 	}
 

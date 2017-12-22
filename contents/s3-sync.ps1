@@ -9,10 +9,6 @@
     AWS Access Key
 .PARAMETER secretKey
     AWS Secret Key
-.PARAMETER source
-    Source
-.PARAMETER destination
-    Destination
 .NOTES
   Version:        1.0.0
   Author:         Miguel
@@ -23,9 +19,7 @@
 
 Param (
     [string]$accessKey,
-    [string]$secretKey,
-    [string]$source,
-    [string]$destination
+    [string]$secretKey
 )
 
 Begin {
@@ -60,9 +54,9 @@ Begin {
               $LocalPath=$LocalPath.Remove(0, 1)  
             }
 
-            $KeyPrefix =  $uri.PathAndQuery +"/"
+            $KeyPrefix =  $uri.LocalPath +"/"
         }else{
-            $KeyPrefix = $uri.PathAndQuery
+            $KeyPrefix = $uri.LocalPath
         }
 
         
@@ -94,7 +88,9 @@ Begin {
     Function localFiles($uri){
         $localFileList = @{}
 
-        Get-ChildItem $uri.AbsolutePath -Recurse  | % {
+        echo $uri.LocalPath
+
+        Get-ChildItem $uri.LocalPath -Recurse  | % {
 
             $filePath = $_.FullName
 
@@ -125,7 +121,15 @@ Process {
 
     try{
 
+        $source=$Env:RD_CONFIG_SOURCE
+        $destination=$Env:RD_CONFIG_DESTINATION
+
         $Params = @{}
+
+        $remove=$False
+        if($Env:RD_CONFIG_REMOVE -eq "true"){
+            $remove=$True
+        }
 
         if($Env:RD_CONFIG_DEFAULT_REGION){
             $Params.add("Region", $Env:RD_CONFIG_DEFAULT_REGION) 
@@ -160,29 +164,27 @@ Process {
             $destinationFileList = s3Files($uriDestination)
         } 
 
-        #echo "source----"
-        #$sourceFileList | Format-List
-        #echo "destination----"
-        #$destinationFileList | Format-List
-
-        write-host "------ remove from destination ------"
-        $need_remove = $destinationFileList.Keys | Where-Object { 
-            ($_ -notin $sourceFileList.Keys) -or ($destinationFileList.$_ -ne $sourceFileList.$_) 
-        }
-
-        if($uriDestination.Scheme -ne "s3"){
-            foreach($local_file in $need_remove) { 
-                $full_path=$uriDestination.LocalPath +"\"+ $local_file
-                echo "Removing local file: $($full_path)"
-                Remove-Item $full_path
+        if($remove -eq $True){
+            write-host "------ remove from destination ------"
+            $need_remove = $destinationFileList.Keys | Where-Object { 
+                ($_ -notin $sourceFileList.Keys) -or ($destinationFileList.$_ -ne $sourceFileList.$_) 
             }
-        }else{
-            foreach($s3_file in $need_remove) { 
-                $key = $uriSource.LocalPath +"/" + $s3_file
-                echo "Removing s3 file: $($key)"
-                Remove-S3Object -BucketName $uriDestination.Authority -Key $key -Force
+
+            if($uriDestination.Scheme -ne "s3"){
+                foreach($local_file in $need_remove) { 
+                    $full_path=$uriDestination.LocalPath +"\"+ $local_file
+                    echo "Removing local file: $($full_path)"
+                    Remove-Item $full_path
+                }
+            }else{
+                foreach($s3_file in $need_remove) { 
+                    $key = $uriSource.LocalPath +"/" + $s3_file
+                    echo "Removing s3 file: $($key)"
+                    Remove-S3Object -BucketName $uriDestination.Authority -Key $key -Force
+                }
             }
         }
+        
 
         write-host ""
         write-host "------ need to add to destination  ------"
@@ -216,11 +218,18 @@ Process {
         if($uriSource.Scheme -ne "s3" -and $uriDestination.Scheme -eq "s3" ){
             #Uploading it from S3
             foreach($local_file in $need_add) {
-                $full_path=$uriSource.AbsolutePath +"\"+ $local_file
+                $full_path=$uriSource.LocalPath +"\"+ $local_file
 
-                echo "Uploading file: $($full_path) to $($uriDestination.AbsolutePath)"
+                if($uriDestination.LocalPath -ne "\"){
+                    $key = $uriDestination.LocalPath +"\"+ $local_file
+                }else{
+                    $key = $local_file
+                }
 
-                Write-S3Object -BucketName $uriDestination.Authority -Key $local_file -File $full_path -Force  @Params
+                echo "Uploading file: $($full_path) to $($key)"
+                
+
+                Write-S3Object -BucketName $uriDestination.Authority -Key $key -File $full_path -Force  @Params
             }
         }
 
