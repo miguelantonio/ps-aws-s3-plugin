@@ -11,7 +11,7 @@ providers:
     plugin-type: script
     script-interpreter: powershell -NonInteractive -Noprofile -ExecutionPolicy Bypass -Command
     script-file: s3-cp.ps1
-    script-args: ${config.access_key} ${config.secret_access_key} ${config.source} ${config.destination}
+    script-args: ${config.access_key} ${config.secret_access_key}
     config:
       - type: String
         name: source
@@ -66,7 +66,7 @@ providers:
     plugin-type: script
     script-interpreter: powershell -NonInteractive -Noprofile -ExecutionPolicy Bypass -Command
     script-file: s3-mv.ps1
-    script-args: ${config.source} ${config.destination}
+    script-args: ${config.access_key} ${config.secret_access_key}
     config:
       - type: String
         name: source
@@ -77,25 +77,13 @@ providers:
         title: destination
         description: 'the S3 URI or local path'
       - type: String
-        name: include
-        title: include
-        description: 'Do not exclude files or objects in the command that match the specified pattern.'
-      - type: String
-        name: exclude
-        title: exclude
-        description: 'Exclude all files or objects from the command that matches the specified pattern.'        
-      - type: Boolean
-        name: quiet
-        title: quiet
-        description: 'Use --quiet? Does not display the operations performed from the specified command.'
+        name: search_pattern
+        title: Search Pattern
+        description: 'Just copy files (local path) that match the specified pattern.'  
       - type: Boolean
         name: recursive
         title: recursive
         description: 'Use --recursive?'
-      - type: Boolean
-        name: dryrun
-        title: dryrun
-        description: 'Use --dryrun? Displays the operations that would be performed using the specified command without actually running them.'
       - type: String
         name: endpoint_url
         title: Endpoint URL
@@ -143,18 +131,6 @@ providers:
         name: destination
         title: destination
         description: 'the S3 URI or local path'
-      - type: String
-        name: include
-        title: include
-        description: 'Do not exclude files or objects in the command that match the specified pattern' 
-      - type: String
-        name: exclude
-        title: exclude
-        description: 'Exclude all files or objects from the command that matches the specified pattern.'
-      - type: Boolean
-        name: recursive
-        title: recursive
-        description: 'Use --recursive?'
       - type: String
         name: endpoint_url
         title: Endpoint URL
@@ -239,37 +215,12 @@ providers:
     plugin-type: script
     script-interpreter: powershell -NonInteractive -Noprofile -ExecutionPolicy Bypass -Command
     script-file: s3-rm.ps1
-    script-args: ${config.S3Uri}
+    script-args: ${config.access_key} ${config.secret_access_key}  ${config.S3Uri}
     config:
       - type: String
         name: S3Uri
         title: S3Uri
-        description: 'the S3 URI'
-      - type: String
-        name: include
-        title: include
-        description: 'Do not exclude files or objects in the command that match the specified pattern.'
-      - type: String
-        name: exclude
-        title: exclude
-        description: 'Exclude all files or objects from the command that matches the specified pattern.'
-      - type: Boolean
-        name: dryrun
-        title: dryrun
-        description: 'Use --dryrun?  Displays the operations that would be performed.'        
-      - type: Boolean
-        name: recursive
-        title: recursive
-        description: 'Use --recursive? Command is performed on all files or objects under the specified directory.'
-      - type: Boolean
-        name: only-show-errors
-        title: only-show-errors
-        description: 'Use --only-show-errors? Only errors and warnings are displayed.'
-      - type: String
-        name: page-size
-        title: page-size
-        description: 'The number of results to return in each response to a list operation.'
-        default: "1000"
+        description: 'the S3 URI'    
       - type: String
         name: endpoint_url
         title: Endpoint URL

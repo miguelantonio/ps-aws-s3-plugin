@@ -2,9 +2,9 @@
 
 <#
 .SYNOPSIS
-  Copy AWS bucket objects
+  Move AWS bucket objects
 .DESCRIPTION
-  Copy AWS bucket objects
+  Move AWS bucket objects
 .PARAMETER accessKey
     AWS Access Key
 .PARAMETER secretKey
@@ -83,6 +83,7 @@ Process {
 		$key =  $uriSource.LocalPath.Remove(0, 1)
 
 		write-host "Downloading s3://$($uriSource.Authority)/$key  to $($uriDestination.AbsolutePath) "
+		
 
 		$type=checkType($uriDestination.AbsolutePath)
 
@@ -142,5 +143,32 @@ Process {
 			Get-S3Object -BucketName $uriDestination.Authority -KeyPrefix '\' @Params
 		}
 	}
+
+
+	write-host ""
+	write-host "Removing source"
+
+	if($uriSource.Scheme -eq "s3"){ 
+		$files = Get-S3Object -BucketName $uriSource.Authority -KeyPrefix $uriSource.LocalPath @Params
+
+	    foreach($file in $files) { 
+	        write-host "Removing S3 file :  $($file.key)"
+	        Remove-S3Object -BucketName $uriSource.Authority -Key $file.key -Force @Params
+	    }
+    }else{
+
+	    Get-ChildItem $uriSource.LocalPath -Recurse  | % {
+
+            $filePath = $_.FullName
+
+            $type=checkType($filePath)
+
+            if($type -eq "file"){
+                write-host "Removing local file :  $($filePath)"
+                Remove-Item $filePath
+            }
+	    }
+    }
+
 
 }

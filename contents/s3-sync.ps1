@@ -209,10 +209,7 @@ Process {
                 echo "Downloading S3 file: $($key) from bucket $($uriSource.Authority) to $($localFile)"
                 echo ""
 
-                Copy-S3Object  -BucketName $uriSource.Authority `
-                               -Key $key `
-                               -LocalFile $localFile `
-                               @Params
+                Copy-S3Object  -BucketName $uriSource.Authority -Key $key -LocalFile $localFile @Params
             }
         }
 
@@ -223,11 +220,7 @@ Process {
 
                 echo "Uploading file: $($full_path) to $($uriDestination.AbsolutePath)"
 
-                Write-S3Object -BucketName $uriDestination.Authority `
-                               -Key $local_file `
-                               -File $full_path  `
-                               -Force  `
-                               @Params
+                Write-S3Object -BucketName $uriDestination.Authority -Key $local_file -File $full_path -Force  @Params
             }
         }
 
@@ -235,11 +228,7 @@ Process {
             #Download it from S3
             foreach($s3_file in $need_add) {
                 echo "Coping S3 file: $($s3_file) to $($uriDestination.AbsolutePath)"
-                Copy-S3Object  -BucketName $uriSource.Authority `
-                               -Key $s3_file `
-                               -DestinationKey $s3_file `
-                               -DestinationBucket $uriDestination.Authority `
-                               @Params
+                Copy-S3Object  -BucketName $uriSource.Authority -Key $s3_file -DestinationKey $s3_file -DestinationBucket $uriDestination.Authority @Params
             }
         }
         
